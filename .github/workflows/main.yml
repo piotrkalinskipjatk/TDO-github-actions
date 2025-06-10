@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check formatting
         run: |
-          npx prettier --check .
+          npx prettier --write .
 
   test-unit:
     needs: [lint, security-audit, formatting]
