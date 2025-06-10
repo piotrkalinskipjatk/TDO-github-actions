@@ -5,7 +5,7 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint .",
-    "format": "prettier --check .",
+    "format": "prettier --write .",
     "test:integration": "jest tests/integration"
   },
   "devDependencies": {
