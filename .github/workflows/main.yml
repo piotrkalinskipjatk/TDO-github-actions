@@ -76,7 +76,7 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - run: docker-compose up -d
+      - run: docker compose up -d
       - run: npm run test:integration
 
   build:
