@@ -1,0 +1,107 @@
+name: LAB14 CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [staging, production]
+        required: true
+      version:
+        description: 'Deployment version'
+        required: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint code
+        run: |
+          npm ci
+          npm run lint
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit dependencies
+        run: |
+          npm ci
+          npm audit --audit-level=high
+
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check formatting
+        run: |
+          npx prettier --check .
+
+  test-unit:
+    needs: [lint, security-audit, formatting]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: deps-node-${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm test
+      - uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  integration-tests:
+    needs: test-unit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker-compose up -d
+      - run: npm run test:integration
+
+  build:
+    needs: integration-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t my-app-image:latest .
+      - name: Archive build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: logs/
+
+  deploy:
+    needs: build
+    if: always()
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Custom Deployment
+        uses: ./.github/actions/custom-deploy
+        with:
+          environment: ${{ github.event.inputs.environment || 'staging' }}
+          version: ${{ github.event.inputs.version || 'latest' }}
+          notify-team: true
+      - name: Notify
+        run: echo "Deployment finished"

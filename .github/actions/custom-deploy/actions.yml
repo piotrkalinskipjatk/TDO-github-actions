@@ -1,0 +1,20 @@
+name: 'Custom Deploy'
+description: 'Deploy the app with custom logic'
+inputs:
+  environment:
+    required: true
+  version:
+    required: true
+  notify-team:
+    required: false
+    default: false
+outputs:
+  deployment-url:
+    description: "URL of deployed environment"
+  deployment-time:
+    description: "Deployment timestamp"
+runs:
+  using: "composite"
+  steps:
+    - run: ./github/actions/custom-deploy/deploy.sh "${{ inputs.environment }}" "${{ inputs.version }}" "${{ inputs.notify-team }}"
+      shell: bash
