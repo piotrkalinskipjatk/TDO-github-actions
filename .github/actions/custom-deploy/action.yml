@@ -16,5 +16,5 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - run: ./github/actions/custom-deploy/deploy.sh "${{ inputs.environment }}" "${{ inputs.version }}" "${{ inputs.notify-team }}"
+    - run: ./deploy.sh "${{ inputs.environment }}" "${{ inputs.version }}" "${{ inputs.notify-team }}"
       shell: bash
