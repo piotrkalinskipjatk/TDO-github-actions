@@ -16,3 +16,4 @@ echo "deployment-time=$DEPLOYMENT_TIME" >> $GITHUB_OUTPUT
 if [ "$NOTIFY" = "true" ]; then
   echo "Sending notification to team..."
 fi
+
