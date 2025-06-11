@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app/math.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:integration": "jest tests/integration"
